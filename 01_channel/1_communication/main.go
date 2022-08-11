@@ -9,17 +9,17 @@ import (
 func main() {
 	//sendBeforeReceive()
 	//receiveBeforeSend()
-	//testSendAndGetData()
+	testSendAndGetData()
 	//signalPattern()
-	ch := make(chan int) // Create a new channel.
-	go generate(ch)      // Start generate() as a goroutine.
-	for {
-		prime := <-ch
-		fmt.Print(prime, " ")
-		ch1 := make(chan int)
-		go filter(ch, ch1, prime)
-		ch = ch1
-	}
+	//ch := make(chan int) // Create a new channel.
+	//go generate(ch)      // Start generate() as a goroutine.
+	//for {
+	//	prime := <-ch
+	//	fmt.Print(prime, " ")
+	//	ch1 := make(chan int)
+	//	go filter(ch, ch1, prime)
+	//	ch = ch1
+	//}
 }
 
 func generate(ch chan int) {
@@ -56,9 +56,9 @@ func signalPattern() {
 func testSendAndGetData() {
 	ch := make(chan string)
 	go sendData(ch)
-	go getData(ch)
+	//go getData(ch)
 	//fmt.Printf("%s \n", <-ch)
-	//getData(ch)
+	getData(ch)
 	time.Sleep(1 * time.Second)
 }
 
@@ -68,7 +68,7 @@ func sendData(ch chan<- string) {
 	ch <- "London"
 	ch <- "Beijing"
 	ch <- "Tokio"
-	//close(ch)
+	close(ch)
 }
 
 func getData(ch <-chan string) {
@@ -77,9 +77,16 @@ func getData(ch <-chan string) {
 	//	input = <-ch
 	//	fmt.Printf("%s \n", input)
 	//}
-	for v := range ch {
-		fmt.Printf("%s \n", v)
+	for {
+		if input, ok := <-ch; ok {
+			fmt.Printf("%s \n", input)
+		} else {
+			break
+		}
 	}
+	//for v := range ch {
+	//	fmt.Printf("%s \n", v)
+	//}
 }
 
 func pump(ch chan int) {
