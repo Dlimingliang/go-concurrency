@@ -6,11 +6,10 @@ import (
 	"time"
 )
 
-var result = 4999950000
-var sum int
+var muteMap sync.Map
 
 type Task struct {
-	Age int
+	Num int
 }
 
 type MutexPool struct {
@@ -26,22 +25,19 @@ func main() {
 func testChanel() {
 	now := time.Now()
 	pending, done := make(chan *Task, 100), make(chan *Task, 100)
-	go func(pending chan *Task) {
-		for i := 0; i < 100000; i++ {
-			pending <- &Task{Age: i}
-		}
-	}(pending)
+	for i := 0; i < 100000; i++ {
+		go func(pending chan *Task, i int) {
+			pending <- &Task{Num: i}
+		}(pending, i)
+	}
 
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 5; i++ {
 		go Worker(pending, done)
 	}
 
 	for i := 0; i < 100000; i++ {
-		res := <-done
-		sum += res.Age
+		<-done
 	}
-	fmt.Println("should: ", result)
-	fmt.Println("actual", sum)
 	fmt.Println(time.Since(now).Nanoseconds())
 }
 
@@ -54,40 +50,43 @@ func Worker(pending, done chan *Task) {
 }
 
 func processPoint(t *Task) {
-	sum += t.Age
+	if _, ok := muteMap.Load(t.Num); !ok {
+		muteMap.Store(t.Num, true)
+	} else {
+		fmt.Println("已经存在", t.Num)
+	}
 }
 
 func testMutex() {
 	now := time.Now()
 	var tasks []Task
 	for i := 0; i < 100000; i++ {
-		tasks = append(tasks, Task{Age: i})
+		tasks = append(tasks, Task{Num: i})
 	}
 	poll := MutexPool{Tasks: tasks}
-	for i := 0; i < 20; i++ {
-		//Worker(&poll)
+	for i := 0; i < 5; i++ {
 		go mutexWorker(&poll)
 	}
-	fmt.Println("should: ", result)
-	fmt.Println("actual", sum)
 	fmt.Println(time.Since(now).Nanoseconds())
 }
 
 func mutexWorker(pool *MutexPool) {
 	for {
-		pool.Mu.Lock()
-		// begin critical section:
+		//pool.Mu.Lock()
 		if len(pool.Tasks) == 0 {
 			return
 		}
-		task := pool.Tasks[0]       // take the first task
-		pool.Tasks = pool.Tasks[1:] // update the pool of tasks
-		// end critical section
+		task := pool.Tasks[0]
+		pool.Tasks = pool.Tasks[1:]
+		//pool.Mu.Unlock()
 		process(task)
-		pool.Mu.Unlock()
 	}
 }
 
 func process(t Task) {
-	sum += t.Age
+	if _, ok := muteMap.Load(t.Num); !ok {
+		muteMap.Store(t.Num, true)
+	} else {
+		fmt.Println("已经存在", t.Num)
+	}
 }
