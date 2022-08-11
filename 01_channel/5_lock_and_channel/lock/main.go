@@ -23,29 +23,24 @@ func main() {
 }
 
 func testChanel() {
-	now := time.Now()
-	pending, done := make(chan *Task, 100), make(chan *Task, 100)
-	for i := 0; i < 100000; i++ {
+	pending := make(chan *Task, 100)
+	for i := 0; i < 10000; i++ {
 		go func(pending chan *Task, i int) {
 			pending <- &Task{Num: i}
 		}(pending, i)
 	}
 
 	for i := 0; i < 5; i++ {
-		go Worker(pending, done)
+		go Worker(pending)
 	}
-
-	for i := 0; i < 100000; i++ {
-		<-done
-	}
-	fmt.Println(time.Since(now).Nanoseconds())
+	time.Sleep(5 * time.Second)
+	fmt.Println(muteMap)
 }
 
-func Worker(pending, done chan *Task) {
+func Worker(pending chan *Task) {
 	for {
 		t := <-pending
 		processPoint(t)
-		done <- t
 	}
 }
 
@@ -58,16 +53,16 @@ func processPoint(t *Task) {
 }
 
 func testMutex() {
-	now := time.Now()
 	var tasks []Task
-	for i := 0; i < 100000; i++ {
+	for i := 0; i < 10000; i++ {
 		tasks = append(tasks, Task{Num: i})
 	}
 	poll := MutexPool{Tasks: tasks}
 	for i := 0; i < 5; i++ {
 		go mutexWorker(&poll)
 	}
-	fmt.Println(time.Since(now).Nanoseconds())
+	time.Sleep(5 * time.Second)
+	fmt.Println(muteMap)
 }
 
 func mutexWorker(pool *MutexPool) {
