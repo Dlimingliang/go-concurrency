@@ -10,7 +10,6 @@ func main() {
 }
 
 func testSelect() {
-	done := make(chan bool)
 	ch1 := make(chan int)
 	ch2 := make(chan int)
 
@@ -19,7 +18,6 @@ func testSelect() {
 			time.Sleep(1 * time.Second)
 			ch1 <- i
 		}
-		done <- true
 	}()
 
 	go func() {
@@ -27,7 +25,6 @@ func testSelect() {
 			time.Sleep(1 * time.Second)
 			ch2 <- i
 		}
-		done <- true
 	}()
 
 	for {
@@ -37,6 +34,6 @@ func testSelect() {
 		case v := <-ch2:
 			fmt.Println("ch2 receiving: ", v)
 		}
-
 	}
+
 }
