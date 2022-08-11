@@ -19,7 +19,7 @@ type MutexPool struct {
 }
 
 func main() {
-	testMutex()
+	//testMutex()
 	testChanel()
 }
 
