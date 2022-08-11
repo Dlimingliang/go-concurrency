@@ -10,6 +10,8 @@ func main() {
 }
 
 func testSelect() {
+	sum := 0
+	done := make(chan bool, 2)
 	ch1 := make(chan int)
 	ch2 := make(chan int)
 
@@ -18,6 +20,7 @@ func testSelect() {
 			time.Sleep(1 * time.Second)
 			ch1 <- i
 		}
+		done <- true
 	}()
 
 	go func() {
@@ -25,14 +28,21 @@ func testSelect() {
 			time.Sleep(1 * time.Second)
 			ch2 <- i
 		}
+		done <- true
 	}()
 
 	for {
+		if sum == 2 {
+			break
+		}
 		select {
 		case v := <-ch1:
 			fmt.Println("ch1 receiving: ", v)
 		case v := <-ch2:
 			fmt.Println("ch2 receiving: ", v)
+		case <-done:
+			fmt.Println("ch end")
+			sum++
 		}
 	}
 
