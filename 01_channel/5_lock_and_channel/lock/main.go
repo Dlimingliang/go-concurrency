@@ -40,7 +40,6 @@ func testChanel() {
 		res := <-done
 		sum += res.Age
 	}
-	time.Sleep(2 * time.Second)
 	fmt.Println("should: ", result)
 	fmt.Println("actual", sum)
 	fmt.Println(time.Since(now).Nanoseconds())
@@ -49,8 +48,13 @@ func testChanel() {
 func Worker(pending, done chan *Task) {
 	for {
 		t := <-pending
+		processPoint(t)
 		done <- t
 	}
+}
+
+func processPoint(t *Task) {
+	sum += t.Age
 }
 
 func testMutex() {
@@ -64,7 +68,6 @@ func testMutex() {
 		//Worker(&poll)
 		go mutexWorker(&poll)
 	}
-	time.Sleep(2 * time.Second)
 	fmt.Println("should: ", result)
 	fmt.Println("actual", sum)
 	fmt.Println(time.Since(now).Nanoseconds())
