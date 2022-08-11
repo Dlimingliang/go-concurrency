@@ -2,13 +2,30 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"time"
 )
 
 func main() {
 	//sendBeforeReceive()
 	//receiveBeforeSend()
-	testSendAndGetData()
+	//testSendAndGetData()
+	signalPattern()
+}
+
+func signalPattern() {
+	s := []int{1, 5, 2, 4, 3}
+	done := make(chan bool)
+	doSort := func(s []int) {
+		sort.Ints(s)
+		done <- true
+	}
+	i := 3
+	go doSort(s[:i])
+	go doSort(s[i:])
+	<-done
+	<-done
+	fmt.Println(s)
 }
 
 func testSendAndGetData() {
